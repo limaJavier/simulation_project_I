@@ -88,8 +88,7 @@ Posee como variables:
 
 Primero hay que establecer una unidad de tiempo, por ejemplo, usar una Poisson con un rate de $20$ llegadas por hora, sería equivalente a una cantidad $\lambda = 20 / 60 / 60$ llegadas por segundo. 
 
-
-El problema puede ser modelado como una cadena de Markov donde los estados representan la cantidad de clientes en el lavado en un momento de tiempo dado, para poder usar este modelo, es necesario que las probabilidades de ir de un estado $i$ a un estado $j$ solamente dependa de el estado $i$. Además es necesario garantizar que en un momento dado de tiempo ocurre uno de varios sucesos con probabilidades tales que sumen $1$, estos sucesos en el caso de el problema serían:
+El problema puede ser modelado como una cadena de Markov donde los estados representan la cantidad de clientes en el lavado en un momento dado, para poder usar este modelo, es necesario que las probabilidades de ir de un estado $i$ a un estado $j$ solamente dependa de el estado $i$. Además es necesario garantizar que en un momento dado de tiempo ocurre uno de varios sucesos con probabilidades tales que sumen $1$, estos sucesos en el caso de el problema serían:
 
 \begin{enumerate}
     \item llega un cliente nuevo.
@@ -140,7 +139,9 @@ Esta cadena de Markov posee una sola clase recurrente que no es periódica, por 
 
 Asumamos por ahora, que ya calculamos $\pi$, entonces la probabilidad de perder a un cliente debido a que el lavado está lleno, sería la probabilidad de que llegue un cliente cuando la cadena está en el estado $10$ (llena), que sería:
 
-$$\pi_{10}  * (\lambda * e^{-\lambda})$$
+$$\pi_{10} * \lambda $$
+
+Esta relación es la que usaremos en la simulación para contar los clientes perdidos.
 
 Para hallar la distribución $\pi$ se puede usar la siguiente relación:
 
@@ -166,6 +167,10 @@ En R es posible definir una cadena de Markov a partir de la matriz de transició
 \section{Resultados y Experimentos}
 
 \subsection{Markov Chain}
-    Con los valores originales del problema las probabilidades de que se pierda un cliente en un segundo son: $0.004137817$, la cantidad media de clientes que llegan en un intervalo de longitud $60*60*10$ siguiendo una distribución de Poisson con parámetro 
+    Los resultados de la simulación se pueden visualizar en el siguiente histograma:
+
+    La media de clientes perdidos es alrededor de $140$, por otro lado, con los valores de los parámetros del problema se obtiene que se deben perder alrededor de $150$ clientes, obtenido a través de hallar la media de clientes que deben llegar a el lavado siguiendo la distribución de Poisson, que sería: $\mathbb{E}(x) = \lambda * 60 * 60 * 10$ multiplicado por la probabilidad de que cuando lleguen la cola esté llena $\pi_{10}$. Asumimos que la razón por la que hay esta diferencia de alrededor de $10$ clientes, es porque la cantidad de iteraciones de la simulación no es suficiente, ya que la distribución $\pi$ es cuando $n \to \infty$. Para confirmar lo anterior multiplicamos por $10$ la cantidad de iteraciones y obtuvimos el siguiente histograma:
+
+    En este caso está más cercana la media a $1500$. Podemos realizar un $t$-test para comprobar esta hipótesis y obtenemos:
 
 \end{document}

@@ -2,7 +2,7 @@ library(markovchain)
 
 lambda <- 20 / 60 / 60 # seconds.
 miu <- 1 / 12 / 60  # seconds.
-iterations <- 60 * 60 * 10  # seconds.
+iterations <- 60 * 60 * 1000  # seconds.
 
 
 states <- c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
@@ -36,9 +36,8 @@ for (i in 2:length(states) - 1) {
 
 mc <- new("markovchain", states = states, transitionMatrix = transition_matrix, name = "Car Washer", byrow = TRUE)
 
-
 results <- c()
-for (j in 1:200000) {
+for (j in 1:200) {
     lose_client <- 0
     set.seed(24124*j + 2343234)
     simulation <- rmarkovchain(iterations, mc, t0 = "0")
@@ -62,10 +61,9 @@ data <- results # replace with your data
 mean_data <- mean(data)
 sd_data <- sd(data)
 
-library(expm)
 
 # Create the histogram
-hist(data, main = "Histogram with Mean and SD", xlab = "Data", border = "black", col = "lightblue", xlim = range(c(data, mean_data - sd_data, mean_data + sd_data)))
+plot <- hist(data, main = "Histogram with Mean and SD", xlab = "Data", border = "black", col = "lightblue", xlim = range(c(data, mean_data - sd_data, mean_data + sd_data)))
 
 # Add the mean
 abline(v = mean_data, col = "red", lwd = 2)
@@ -79,5 +77,3 @@ text(
 # Add the standard deviation
 abline(v = mean_data - sd_data, col = "blue", lwd = 2, lty = 2)
 abline(v = mean_data + sd_data, col = "blue", lwd = 2, lty = 2)
-text(x = mean_data - sd_data, y = par("usr")[4], labels = paste("-SD =", round(sd_data, 2)), pos = 2, col = "blue")
-text(x = mean_data + sd_data, y = par("usr")[4], labels = paste("+SD =", round(sd_data, 2)), pos = 4, col = "blue")
