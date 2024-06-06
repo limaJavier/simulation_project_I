@@ -1,10 +1,10 @@
 from simulation import Event, Simulation
 from math import floor
 from random import expovariate
-import pandas as pd
+import csv
 
 class CarWash(Simulation):
-    def __init__(self, interarrival_distro, service_distro, maximum_queue_length = 9) -> None:
+    def __init__(self, interarrival_distro, service_distro, maximum_queue_length = 9, duration = 36000) -> None:
         super().__init__()
         # Simulation times distributions
         self._interarrival_distro = interarrival_distro
@@ -14,6 +14,7 @@ class CarWash(Simulation):
         self._queue = []
         self._serving = False
         self._maximum_queue_length = maximum_queue_length
+        self._duration = duration
 
     def _simulate_day(self, initial_state: tuple[list[int], bool, list[Event]] = [[], False, [Event("arrival", 0)]]):
         # Reset clock
@@ -41,12 +42,16 @@ class CarWash(Simulation):
             # Update clock
             self._clock = current_event.time
 
-            if self._clock >= 36000:
-                break
-
             # Statistical step
             if self._serving == True:
                 service_usage += delay
+                # Service usage cannot be greater than simulation duration
+                if service_usage > self._duration:
+                    service_usage = self._duration
+
+            # Stop simulation
+            if self._clock >= self._duration:
+                break
 
             # Simulation steps
             if current_event.type == "arrival":
@@ -97,11 +102,19 @@ class CarWash(Simulation):
             effective_interarrival_mean += effective_arrival_times[i + 1] - effective_arrival_times[i]
         effective_interarrival_mean = effective_interarrival_mean / (len(effective_arrival_times) - 1) 
 
-        return [self._clock, service_usage, lost_cars, mean_delay_time, effective_interarrival_mean]
+        return [self._duration, service_usage, lost_cars, mean_delay_time, effective_interarrival_mean]
     
     def simulate(self, days : int):
-        for _ in range(0, days):
-            print(self._simulate_day([[], False, [Event("arrival", self._interarrival_distro())]]))
+        column_names = ['duration', 'service_usage', 'lost_cars', 'mean_delay_time', 'effective_interarrival_mean']
+        file_name = "simple_carwash_simulation.csv"
+
+        with open(file_name, mode='w', newline='') as file:
+            writer = csv.writer(file)
+
+            writer.writerow(column_names)
+
+            for _ in range(0, days):
+                writer.writerow(self._simulate_day([[], False, [Event("arrival", self._interarrival_distro())]]))
 
 def arrival_distro():
     return floor(expovariate(20 / 3600))
@@ -110,4 +123,3 @@ def service_distro():
 
 car_wash = CarWash(arrival_distro, service_distro)
 car_wash.simulate(1000)
-# print(service_distro())
