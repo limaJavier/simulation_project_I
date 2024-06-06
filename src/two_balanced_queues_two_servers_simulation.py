@@ -18,6 +18,17 @@ class CarWash(Simulation):
         self._maximum_queue_length = maximum_queue_length
         self._duration = duration
 
+    def _balance(self, queue1 : list[int], queue2 : list[int]):
+        difference = abs(len(queue1) - len(queue2))
+        if difference > 1:
+            if len(queue1) > len(queue2):
+                for _ in range(0, floor(difference / 2)):
+                    queue2.append(queue1.pop())
+            else:
+                for _ in range(0, floor(difference / 2)):
+                    queue1.append(queue2.pop())
+
+
     def _simulate_day(self, initial_state: list[tuple[list[int], list[int]], tuple[bool, bool], list[Event]] = [([], []), (False, False), [Event("arrival", 0)]]):
         # Reset clock
         self._clock = 0
@@ -110,6 +121,8 @@ class CarWash(Simulation):
             for car in self._queue_2:
                 delay_times[car] += delay
 
+            self._balance(self._queue_1, self._queue_2)
+
             # Sort events by their time
             self._future_events.sort(key=lambda event: event.time)
 
@@ -129,7 +142,7 @@ class CarWash(Simulation):
     
     def simulate(self, days : int):
         column_names = ['duration', 'service_usage', 'lost_cars', 'mean_delay_time', 'effective_interarrival_mean']
-        file_name = "two_queues_two_servers.csv"
+        file_name = "two_balanced_queues_two_servers.csv"
 
         with open(file_name, mode='w', newline='') as file:
             writer = csv.writer(file)
