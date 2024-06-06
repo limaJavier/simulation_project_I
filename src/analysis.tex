@@ -1,0 +1,171 @@
+% add --shell-escape to pdflatex arguments.
+% add following key to have keyboard shortcuts
+%{
+%    "key": "shift+b",
+%    "command": "commandId",
+%    "when": "editorTextFocus"
+%},
+%{
+%"key": "shift+B",
+%"command": "editor.action.insertSnippet",
+%"when": "editorLangId == latex && editorTextFocus",
+%"args": {
+%    "snippet": "\\textbf{${TM_SELECTED_TEXT}$0}"
+%}
+%}
+
+\documentclass[14pt]{extarticle}
+\usepackage[left=0.5cm , right = 0.5cm, top=0.5cm]{geometry}
+\usepackage{helvet}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[spanish]{babel}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox} % above of the svg package
+\usepackage{svg} 
+\usepackage{hyperref}
+\usepackage{minted}
+\renewcommand{\sfdefault}{lmss}  % este activa la letra lmss
+\renewcommand{\familydefault}{\sfdefault} % este activa la letra lmss
+\sffamily % este activa la letra lmss
+%\hyperlink{page.2}{Go to page 2}
+%\newpage
+%text on page 2
+%\begin{figure}[htbp]
+%  \centering
+%  \includesvg{plot.svg}
+%  \caption{svg image}
+%\end{figure}
+
+%\begin{minted}{csharp}
+%    // single comment
+%    \end{minted}
+
+% f(n) = \begin{cases}
+%    n/2  & n \text{ is even} \\
+%    3n+1 & n \text{ is odd}
+%  \end{cases}
+
+%\begin{align}
+%    \frac{d}{dx} \ln x &= \lim_{h\to 0} \frac{\ln(x+h) - \ln x}{h} \\
+%    &= \ln e^{1/x} &&\text{How this follows is left as an exercise.}\\
+%    &= \frac{1}{x} &&\text{Using the definition of ln as inverse function}
+%   \end{align}
+
+
+\begin{document}
+
+\section{Introducción}
+
+Tenemos como objetivo , una vez modelado el problema , realizar una simulación y contrastar los resultados de esta con la teoría relativa a este tipo de problemas:
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black, title = Lavadero de Coches]
+    
+    Un pequeño autoservicio de lavado en el que el coche que entra no puede
+    hacerlo hasta que el otro haya salido completamente, tiene una capacidad de
+    aparcamiento de $10$ coches, incluyendo el que está siendo lavado. La empresa ha
+    estimado que los coches llegan siguiendo una distribución de Poisson con una
+    media de $20$ coches/hora, el tiempo de servicio sigue una distribución exponencial
+    de $12$ minutos. La empresa abre durante $10$ horas al día. ¿Cuál es la media de
+    coches perdidos cada día debido a las limitaciones de espacio?
+
+\end{tcolorbox}
+
+Posee como variables:
+
+\begin{enumerate}
+    \item la capacidad de el autoservicio.
+    \item la distribución con la que llegan los coches a el autoservicio.
+    \item la distribución con la que son atendidos los coches.
+    \item el tiempo que abre la empresa durante un día.
+    \item la forma en que son atendidos los coches una vez en el autoservicio.
+    \item media de coches perdidos cada día debido a las limitaciones de espacio.
+\end{enumerate}
+
+\section{Modelo Matemático}
+
+Primero hay que establecer una unidad de tiempo, por ejemplo, usar una Poisson con un rate de $20$ llegadas por hora, sería equivalente a una cantidad $\lambda = 20 / 60 / 60$ llegadas por segundo. 
+
+
+El problema puede ser modelado como una cadena de Markov donde los estados representan la cantidad de clientes en el lavado en un momento de tiempo dado, para poder usar este modelo, es necesario que las probabilidades de ir de un estado $i$ a un estado $j$ solamente dependa de el estado $i$. Además es necesario garantizar que en un momento dado de tiempo ocurre uno de varios sucesos con probabilidades tales que sumen $1$, estos sucesos en el caso de el problema serían:
+
+\begin{enumerate}
+    \item llega un cliente nuevo.
+    \item es atendido un cliente.
+    \item no sucede ninguno de los anteriores.
+\end{enumerate}
+	
+En particular es necesario garantizar que en un intervalo de tiempo no ocurre ninguna de las siguientes:
+\begin{enumerate}
+    \item que lleguen dos o más clientes.
+    \item completen su servicio dos clientes.
+    \item o que llegue un cliente y es atendido otro.  
+\end{enumerate}
+
+Escogiendo como unidad de tiempo un segundo obtengo que:
+\begin{enumerate}
+	\item $\lambda = 20 / 60 / 60$, rate con que llegan los clientes.
+	\item $\mu = 1 / 12 / 60$, rate con la que es atendido un cliente.
+\end{enumerate}
+	
+Con este $\lambda$ se obtiene que si $X \sim Pois(\lambda)$ :
+\begin{itemize}
+    \item $P( X = 0 )  = 0.9944598$
+    \item $P( X = 1 )  = 0.0055247$
+    \item $P( X = 2 )  = 1.53466e-05$ prácticamente despreciable, por lo que podemos asumir $(1)$.
+\end{itemize}
+
+(2) no sucede porque el lavado atiende los clientes de uno en uno.
+
+La probabilidad de que llegue un cliente en una unidad de tiempo se puede ver como la probabilidad de que una exponencial con un rate $\lambda$ reporte un tiempo de llegada $ \leq 1$, o sea si : $Y \sim Exp(\lambda)$ entonces: $P( Y <= 1) = P( X = 1)$
+
+La probabilidad de que suceda (3) es el producto de las probabilidades de ambos sucesos porque son independientes, que sería: $P( X = 1) * P( Y = 1) = 0.0055247 * 0.001386961$ (lo consideramos como despreciable por lo que se puede asumir (3))
+	
+Dado que puedo asumir (1), (2), (3), puedo asumir el modelo de Markov, tendría $11$ estados : ${0, 1, 2, ..., 10}$.
+
+Las transiciones serían (separando los estados $0, 10$):
+
+$$
+p_{ji} = \begin{cases}
+  \mu * e^{-\mu} & \text{si $i = j-1$} \\
+  \lambda * e^{-\lambda} & \text{si $i = j+1$} \\
+  1 - \mu * e^{-\mu} - \lambda * e^{-\lambda} & \text{si $i = j$} \\
+  0 & \text{en otro caso}
+        \end{cases}
+$$
+
+Esta cadena de Markov posee una sola clase recurrente que no es periódica, por lo que se puede afirmar ( teorema ) que a largo plazo las probabilidades de que la cadena esté en un estado específico convergerán a una distribución $\pi$, donde $\pi_j$ representa la probabilidad de que la cadena se encuentre en el estado $j$. 
+
+Asumamos por ahora, que ya calculamos $\pi$, entonces la probabilidad de perder a un cliente debido a que el lavado está lleno, sería la probabilidad de que llegue un cliente cuando la cadena está en el estado $10$ (llena), que sería:
+
+$$\pi_{10}  * (\lambda * e^{-\lambda})$$
+
+Para hallar la distribución $\pi$ se puede usar la siguiente relación:
+
+Notar que en la cadena debe haber un cierto balance entre las transiciones que van de el estado $i$ al estado $i+1$, y las que van de el estado $i+1$ a el $i$, porque exceptuando la primera vez, cada vez que se va de el estado $i$ al $i+1$, se debe haber ido previamente de el $i+1$ a el $i$.
+
+Por lo que $\pi_i * p_{i, i+1} = \pi_{i+1} * p_{i+1, i}$, esto permite hallar $\pi$, notar que:
+
+\begin{enumerate}
+    \item $\frac{p_{i, i+1}}{p_{i+1, i}}$ es constante $= (\lambda * e^{-\lambda})/(\mu * e^{-\mu}) = \rho$
+    \item $\sum_{i = 0}^{10} \pi_i = 1$. porque $\pi$ es una distribución.
+\end{enumerate}
+
+Queda que: 
+	$$\pi_0 = \frac{(1 - \rho)}{1 - \rho^{11}}$$
+	$$\pi_n = \frac{(1 - \rho)} { 1 - \rho^{11}} * \rho^n$$
+
+\section{Detalles de Implementación}
+
+\subsection{Markov Chain}
+
+En R es posible definir una cadena de Markov a partir de la matriz de transición, una vez realizado esto es posible realizar la simulación tantas iteraciones como se desee, en nuestro caso sería un total de $60 * 60 * 10$ que serían $10$ horas en segundos, cada vez que se encuentre en el estado $10$ (cola llena) podemos ver la probabilidad de que haya una llegada usando una variable aleatoria uniforme (como tirar una moneda biassed) para decidir si hay una llegada o no con probabilidad $p$.
+
+\section{Resultados y Experimentos}
+
+\subsection{Markov Chain}
+    Con los valores originales del problema las probabilidades de que se pierda un cliente en un segundo son: $0.004137817$, la cantidad media de clientes que llegan en un intervalo de longitud $60*60*10$ siguiendo una distribución de Poisson con parámetro 
+
+\end{document}
