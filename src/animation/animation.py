@@ -25,7 +25,7 @@ miu = 10 / 12
 
 class Simulation(Scene):
     def construct(self):
-        time_simulation = 60
+        time_simulation = 5
         queue_capacity = 10
         clock = Clock()
         clock.add(self)
@@ -99,7 +99,7 @@ class Simulation(Scene):
         queue = VGroup()
         queue2 = VGroup()
         for i in range(0, queue_capacity):
-            rs = Square(1, color = WHITE)
+            rs = Square(1.3, color = WHITE)
             if i > 0:
                 rs.move_to(queue2[len(queue2)-1].get_center()).shift(1*RIGHT)
             queue2.add(rs)
@@ -112,7 +112,9 @@ class Simulation(Scene):
                     arrivals[i] = time_simulation + 1
                     car = Circle(1/2)
                     idd = MathTex(i+1).move_to(car.get_center())
-                    gr = VGroup(car, idd).move_to([posX[i].get_value(), posY[i].get_value(), 0])
+                    time_until_done = DecimalNumber(0).next_to(car.get_center(), DOWN)
+                    time_until_done.add_updater(lambda t, dt: t.increment_value(dt))
+                    gr = VGroup(car, idd, time_until_done).move_to([posX[i].get_value(), posY[i].get_value(), 0])
                     gr.color = WAITING
                     def updaterCar(obj):
                         j = int(obj[1].tex_string) - 1
@@ -143,6 +145,7 @@ class Simulation(Scene):
                     service_times[int(queue[0][1].tex_string)-1] -= dt
                     if service_times[int(queue[0][1].tex_string)-1] < 0:
                         queue[0].set_color(DONE)
+                        queue[0][2].remove_updater(queue[0][2].updaters[0])
                         shiftX[int(queue[0][1].tex_string)-1] -= 10
                         queue.remove(queue[0])
                         for el in queue:
