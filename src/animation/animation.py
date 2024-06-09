@@ -14,10 +14,11 @@ class Clock:
         group.shift(3*UP + 3*LEFT)    
         scene.add(group)
 
-WAITING = WHITE
-DONE = GREEN
-BUSY = RED
+WAITING = GRAY_E
+DONE = GREEN_E
+BUSY = YELLOW_E
 LOST = MAROON_E
+REMOVED = PURPLE_E
 
 lambd = 20 / 6
 miu = 10 / 12  
@@ -39,6 +40,62 @@ class Simulation(Scene):
             arrivals.append(arrivals[-1] + next)
         arrivals = arrivals[:-1]
         service_times = [expovariate(miu) for i in range(0, len(arrivals))]
+
+        shiftX = [0 for i in range(0, len(arrivals))]
+        shiftY = [0 for i in range(0, len(arrivals))]
+
+        def frX(i):
+            j = i
+            def f(mobj, dt):
+                dt *= 10
+                increment = 0
+                if shiftX[j] > 0:
+                    if shiftX[j] < dt:
+                        increment = shiftX[j]
+                    else:
+                        increment = dt
+                    mobj.increment_value(increment)
+                    shiftX[j] -= increment
+                if shiftX[j] < 0:
+                    if -shiftX[j] < dt:
+                        increment = -shiftX[j]
+                    else:
+                        increment = dt
+                    mobj.increment_value(-increment)
+                    shiftX[j] += increment
+            return f
+        
+        def frY(i):
+            j = i
+            def f(mobj, dt):
+                dt *= 10
+                increment = 0
+                if shiftY[j] > 0:
+                    if shiftY[j] < dt:
+                        increment = shiftY[j]
+                    else:
+                        increment = dt
+                    mobj.increment_value(increment)
+                    shiftY[j] -= increment
+                if shiftY[j] < 0:
+                    if -shiftY[j] < dt:
+                        increment = -shiftY[j]
+                    else:
+                        increment = dt 
+                    mobj.increment_value(-increment)
+                    shiftY[j] += increment
+            return f
+
+        posX = [ValueTracker(-1) for i in range(0, len(arrivals))]        
+        posY = [ValueTracker(1) for i in range(0, len(arrivals))]
+
+        for i in range(0, len(arrivals)):
+            self.add(posX[i])
+            self.add(posY[i])
+            posX[i].add_updater(frX(i))
+            posY[i].add_updater(frY(i))
+
+
         queue = VGroup()
         queue2 = VGroup()
         for i in range(0, queue_capacity):
@@ -55,14 +112,28 @@ class Simulation(Scene):
                     arrivals[i] = time_simulation + 1
                     car = Circle(1/2)
                     idd = MathTex(i+1).move_to(car.get_center())
-                    gr = VGroup(car, idd)
+                    gr = VGroup(car, idd).move_to([posX[i].get_value(), posY[i].get_value(), 0])
                     gr.color = WAITING
+                    def updaterCar(obj):
+                        j = int(obj[1].tex_string) - 1
+                        obj.move_to([posX[j].get_value(), posY[j].get_value(), 0])
+                    gr.add_updater(updaterCar)
+
+                    def updaterCar2(obj):
+                        j = int(obj[1].tex_string) - 1
+                        if obj.color == LOST:
+                           shiftX[j] += 10
+                           obj.color = REMOVED
+                    gr.add_updater(updaterCar2)
+                    self.add(gr)
                     if len(queue) >= queue_capacity:
-                        gr.move_to(2*LEFT + 2*DOWN)
+                        shiftX[i] += 2 - gr.get_center()[0]
+                        shiftY[i] += -2 - gr.get_center()[1]
                         gr.color = LOST
                         lost_clients.increment_value(1)
                     else:
-                        gr.move_to(queue2[len(queue)].get_center())
+                        shiftX[i] += queue2[len(queue)].get_center()[0] - gr.get_center()[0]
+                        shiftY[i] += queue2[len(queue)].get_center()[1] - gr.get_center()[1]
                         queue.add(gr)
         def updaterServing(queue: VGroup, dt):
             if len(queue) > 0:
@@ -72,10 +143,10 @@ class Simulation(Scene):
                     service_times[int(queue[0][1].tex_string)-1] -= dt
                     if service_times[int(queue[0][1].tex_string)-1] < 0:
                         queue[0].set_color(DONE)
-                        queue[0].move_to(10*LEFT)
+                        shiftX[int(queue[0][1].tex_string)-1] -= 10
                         queue.remove(queue[0])
                         for el in queue:
-                            el.shift(1*LEFT)
+                            shiftX[int(el[1].tex_string)-1] += -1
         queue.add_updater(updaterArrivals)
         queue.add_updater(updaterServing)
         self.wait(time_simulation)
