@@ -100,7 +100,7 @@ En particular es necesario garantizar que en un intervalo de tiempo no ocurre ni
 \begin{enumerate}
     \item que lleguen dos o más clientes.
     \item completen su servicio dos clientes.
-    \item o que llegue un cliente y es atendido otro.  
+    \item o que llegue un cliente y es atendido otro.
 \end{enumerate}
 
 Escogiendo como unidad de tiempo un segundo obtengo que:
@@ -128,9 +128,9 @@ Las transiciones serían (separando los estados $0, 10$):
 
 $$
 p_{ji} = \begin{cases}
-  \mu * e^{-\mu} & \text{si $i = j-1$} \\
-  \lambda * e^{-\lambda} & \text{si $i = j+1$} \\
-  1 - \mu * e^{-\mu} - \lambda * e^{-\lambda} & \text{si $i = j$} \\
+  \mu  & \text{si $i = j-1$} \\
+  \lambda  & \text{si $i = j+1$} \\
+  1 - \mu  - \lambda  & \text{si $i = j$} \\
   0 & \text{en otro caso}
         \end{cases}
 $$
@@ -150,7 +150,7 @@ Notar que en la cadena debe haber un cierto balance entre las transiciones que v
 Por lo que $\pi_i * p_{i, i+1} = \pi_{i+1} * p_{i+1, i}$, esto permite hallar $\pi$, notar que:
 
 \begin{enumerate}
-    \item $\frac{p_{i, i+1}}{p_{i+1, i}}$ es constante $= (\lambda * e^{-\lambda})/(\mu * e^{-\mu}) = \rho$
+    \item $\frac{p_{i, i+1}}{p_{i+1, i}}$ es constante $= \frac{ \lambda}{ \mu}  = \rho$
     \item $\sum_{i = 0}^{10} \pi_i = 1$. porque $\pi$ es una distribución.
 \end{enumerate}
 
@@ -167,10 +167,35 @@ En R es posible definir una cadena de Markov a partir de la matriz de transició
 \section{Resultados y Experimentos}
 
 \subsection{Markov Chain}
-    Los resultados de la simulación se pueden visualizar en el siguiente histograma:
 
-    La media de clientes perdidos es alrededor de $140$, por otro lado, con los valores de los parámetros del problema se obtiene que se deben perder alrededor de $150$ clientes, obtenido a través de hallar la media de clientes que deben llegar a el lavado siguiendo la distribución de Poisson, que sería: $\mathbb{E}(x) = \lambda * 60 * 60 * 10$ multiplicado por la probabilidad de que cuando lleguen la cola esté llena $\pi_{10}$. Asumimos que la razón por la que hay esta diferencia de alrededor de $10$ clientes, es porque la cantidad de iteraciones de la simulación no es suficiente, ya que la distribución $\pi$ es cuando $n \to \infty$. Para confirmar lo anterior multiplicamos por $10$ la cantidad de iteraciones y obtuvimos el siguiente histograma:
+    A través de la simulación obtenemos que la media de clientes perdidos es alrededor de $140$, por otro lado, con los valores de los parámetros del problema se obtiene que se deben perder alrededor de $150$ clientes, obtenido a través de hallar la media de clientes que deben llegar a el lavado siguiendo la distribución de Poisson, que sería: $\mathbb{E}(x) = \lambda * 60 * 60 * 10$ multiplicado por la probabilidad de que cuando lleguen la cola esté llena $\pi_{10}$. Asumimos que la razón por la que hay esta diferencia de alrededor de $10$ clientes, es porque la cantidad de iteraciones de la simulación no es suficiente, ya que la distribución $\pi$ es cuando $n \to \infty$. Para confirmar lo anterior multiplicamos por $10$ la cantidad de iteraciones dos veces, visualizamos los resultados en los siguientes histogramas:
 
-    En este caso está más cercana la media a $1500$. Podemos realizar un $t$-test para comprobar esta hipótesis y obtenemos:
+    \begin{figure}[htbp]
+  \centering
+  \includesvg{histogram_iterations.svg}
+
+\end{figure}
+
+Como conclusión vemos que la cantidad de clientes perdidos aumentará proporcionalmente con respecto a el tiempo en que el lavado se encuentre abierto. La función :
+
+$$f(x) = \frac{(1-x)x^{10}}{1-x^{11}}$$
+
+Es monótona creciente en $[0, \infty)$, $f(0) = 0, \lim_{x \to \infty} f(x) = 1$ (parece una $CDF$), y no está definida en $1$. De esto se deduce que si $\frac{\lambda}{\mu}$ tiende a infinito la cantidad de clientes perdidos sería la máxima posible, que tiene sentido porque si la frecuencia con la que llegan clientes es mucho mayor comparada con la que son atendidos entonces habría congestión.
+
+Aumentar la capacidad de la cola a $m$, resultaría en una nueva función:
+
+$$f(x, m) = \frac{(1-x)x^{m}}{1-x^{m+1}}$$
+
+Pero resulta que no hay mucha diferencia entre las funciones para diferentes valores de $m$:
+
+\begin{figure}[htbp]
+    \centering
+    \includesvg{function_m.svg}
+  \end{figure}
+
+Esta función en las condiciones del problema da como valor $0.75$ lo que significa que las $\frac{3}{4}$ partes del tiempo el lavadero está lleno, provocado porque la razón entre los rates es $4$.
+
+Como conclusión lo ideal sería disminuir el tiempo de atención a los clientes.
+
 
 \end{document}
