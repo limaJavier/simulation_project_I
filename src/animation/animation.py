@@ -56,6 +56,9 @@ class Stats:
                 else 0
             )
         )
+
+        
+
         self.average_attention_time_text = Tex("Avg Attention Time = ").next_to(
             self.average_attention_time_show, LEFT
         )
@@ -101,7 +104,7 @@ class Stats:
 class Simulation(Scene):
     def construct(self):
         self.camera.frame_width = 19
-        time_simulation = 60
+        time_simulation = 3
         queue_capacity = 14
         stats = Stats()
         stats.add(self)
@@ -112,10 +115,12 @@ class Simulation(Scene):
             arrivals.append(arrivals[-1] + next)
         arrivals = arrivals[:-1]
         service_times = [expovariate(miu) for i in range(0, len(arrivals))]
-        time_simulation += 10 * max(service_times)
+        #time_simulation += 10 * max(service_times)
         marked = [False for i in range(0, len(arrivals))]
         shiftX = [0 for i in range(0, len(arrivals))]
         shiftY = [0 for i in range(0, len(arrivals))]
+        opacity = [ValueTracker(1) for i in range(0, len(arrivals))]
+
 
         def frX(i):
             j = i
@@ -218,14 +223,15 @@ class Simulation(Scene):
                     stats.average_interarrival_time.increment_value(
                         arrivals[i] - arrivals[i - 1] if i > 0 else arrivals[i]
                     )
-                    car = Circle((SQUARE_SIDE - 0.3) / 2).set_opacity(0.5)
+                    j = i
+                    car = Circle((SQUARE_SIDE - 0.3) / 2).add_updater(lambda t, dt: t.set_opacity(opacity[j].get_value()))
                     idd = MathTex(i + 1).move_to(car.get_center())
                     time_until_done = DecimalNumber(0).next_to(car.get_center(), DOWN)
                     time_until_done.add_updater(lambda t, dt: t.increment_value(dt))
                     gr = VGroup(car, idd, time_until_done).move_to(
                         [posX[i].get_value(), posY[i].get_value(), 0]
                     )
-                    gr.color = WAITING
+                    gr[0].color = WAITING
 
                     def updaterCar(obj):
                         j = int(obj[1].tex_string) - 1
@@ -235,17 +241,17 @@ class Simulation(Scene):
 
                     def updaterCar2(obj):
                         j = int(obj[1].tex_string) - 1
-                        if obj.color == LOST and shiftX[j] == 0 and shiftY[j] == 0:
+                        if obj[0].color == LOST and shiftX[j] == 0 and shiftY[j] == 0:
                             shiftX[j] += LOST_POSITION_X - obj.get_center()[0]
                             shiftY[j] += LOST_POSITION_Y - obj.get_center()[1]
-                            obj.color = REMOVED
+                            obj[0].color = REMOVED
 
                     gr.add_updater(updaterCar2)
                     self.add(gr)
                     if len(queue) >= queue_capacity:
                         shiftX[i] += queue2[len(queue2)-1].get_center()[0] - gr.get_center()[0]
                         shiftY[i] += queue2[len(queue2)-1].get_center()[1] - gr.get_center()[0]
-                        gr.color = LOST
+                        gr[0].color = LOST
                         stats.lost_client.increment_value(1)
                     else:
                         shiftX[i] += (
@@ -258,13 +264,13 @@ class Simulation(Scene):
 
         def updaterServing(queue: VGroup, dt):
             if len(queue) > 0:
-                if queue[0].color == WAITING:
-                    queue[0].set_color(BUSY)
-                elif queue[0].color == BUSY:
+                if queue[0][0].color == WAITING:
+                    queue[0][0].set_color(BUSY)
+                elif queue[0][0].color == BUSY:
                     service_times[int(queue[0][1].tex_string) - 1] -= dt
                     stats.average_attention_time.increment_value(dt)
                     if service_times[int(queue[0][1].tex_string) - 1] < 0:
-                        queue[0].set_color(DONE)
+                        queue[0][0].set_color(DONE)
                         queue[0][2].remove_updater(queue[0][2].updaters[0])
                         stats.average_time_system.increment_value(
                             queue[0][2].get_value()
