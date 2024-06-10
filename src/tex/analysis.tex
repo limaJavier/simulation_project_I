@@ -221,7 +221,7 @@ Queda que:
 
 \subsection{Simulación}
 
-Para la implementación del proyecto nos basamos en el **Event Scheduling/Time Advance Algorithm** (presente en el libro Discrete Event Simulation de Jerry Banks), el cual lo llevamos al contexto de nuestro problema manteniendo una lista de eventos futuros (cuyos posibles tipos fueron comentados previamente) y avanzando el reloj (clock) de evento más inminente al siguiente, mientras las simulaciones son ejecutadas y los futuros eventos son generados.
+Para la implementación del proyecto nos basamos en el Event Scheduling/Time Advance Algorithm (presente en el libro Discrete Event Simulation de Jerry Banks), el cual lo llevamos al contexto de nuestro problema manteniendo una lista de eventos futuros (cuyos posibles tipos fueron comentados previamente) y avanzando el reloj (clock) de evento más inminente al siguiente, mientras las simulaciones son ejecutadas y los futuros eventos son generados.
 
 Como pseudocódigo:
 
@@ -280,5 +280,82 @@ Esta función en las condiciones del problema da como valor $0.75$ lo que signif
 
 Como conclusión lo ideal sería disminuir el tiempo de atención a los clientes.
 
+\subsection{ Problema original (Single queue, single server)}
+
+Al simular el problema original obtuvimos como respuesta que al día se perdían $141$ coches en promedio; con un tiempo de espera medio de $8$ minutos, una utilización del $99.5 \%$ del servidor y un tiempo inter-arribos efectivo (tiempo en que los coches arriban a la cola y pueden pasar a esta) promedio de 10 minutos.
+
+Estos buenos resultados del sistema (dada la utilización del servidor), nos llevaron al planteamiento de las siguientes preguntas o hipótesis:
+
+\textbf{Hipótesis:}
+
+\begin{enumerate}
+    \item Si los clientes se impacientan y se marchan, el comportamiento del sistema empeorará.
+    \item El sistema con otro servidor y una cola, tendrá mejor comportamiento que con otro servidor y dos colas; sin embargo no mejor que con dos colas balanceadas.
+\end{enumerate} 
+
+\textbf{Clientes impacientes:}
+
+Una vez realizada la simulación para el sistema con clientes impacientes obtuvimos un resultado que refuta nuestra hipótesis; y es que el sistema tiene un mejor comportamiento que con clientes que no abandonan la cola:
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.8\textwidth]{./simple.png}
+ \caption{\textbf{Sistema Original:}}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./impatient.png}
+   \caption{\textbf{Sistema Impaciente:}}
+  \end{figure}
+
+Como podemos observar, la cantidad de clientes perdidos al día y el tiempo de utilización del servidor en promedio son aproximadamente los mismos, mientras que para el sistema impaciente, se reducen en casi tres veces los tiempos de espera y los tiempos inter-arribos efectivos.
+
+La explicación de este resultado, aparentemente contradictorio, está dada en que las pérdidas de clientes por impaciencias llevan a una reducción en las pérdidas por arribos al sistema lleno, manteniendo el total de clientes perdidos igual para ambos sistemas, y disminuyendo el tiempo inter-arribos efectivo. Además de esto, las salidas por impaciencia lleva a que los clientes que llegan a ser atendidos, pasen un tiempo menor en la cola (aquellos que pasan mucho se marchan de esta); esta última conclusión nos indica también, que si aumentáramos la media de la distribución normal truncada utilizada para modelar los tiempos de impaciencia, estos valores favorables para el sistema impaciente disminuirían.
+
+\textbf{Dos servidores, una o dos colas (¿balanceadas?)}
+
+De manera similar a la hipótesis anterior, los resultados obtenidos la refutaron; y es que las variables de interés obtuvieron valores casi idénticos para las tres simulaciones. Con lo que podemos afirmar que ninguna de los tres sistemas posee un mejor comportamiento.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./single_queue.png}
+   \caption{\textbf{Single queue:}}
+  \end{figure}
+
+  \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./two_queues.png}
+   \caption{\textbf{Two queues:}}
+  \end{figure}
+
+  \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./balanced_queues.png}
+   \caption{\textbf{Balanced queues:}}
+  \end{figure}
+
+
+\subsection{Análisis de parada}
+
+En el caso de las cadenas de Markov se realizaron las simulaciones un total de $200$ veces, dado que para realizar la simulación con tiempos de duración más grandes la complejidad computacional es suficiente como para que no sea posible realizar la simulación. La distribución de los clientes perdidos se puede observar en los histogramas anteriores mostrados. 
+
+En el otro caso decidimos realizar las simulaciones un total de $1000$ veces, esta cantidad es computacional-mente posible y además como se puede ver en los siguientes gráficos las variables en cuestión tienden a seguir una distribución normal, (aunque en los test realizados no obtenemos eso).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{./lost_carss.png}
+  \end{figure}
+
+  \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{./mean_delay_time.png}
+  \end{figure}
+
+  \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{./effective_interarrival_mean.png}
+  \end{figure}
 
 \end{document}
