@@ -1,7 +1,12 @@
 
 # Simulation Project I
 
-# Estadisticas
-- Podemos observar en cada experimento cola y servidor simple, dos colas y simple servidor, dos servidores y dos colas, una cola y dos servidores que los parametros 'service_usage', 'lost_cars, 'mean_delay_time' y 'effective_interarrival_mean' tienen comportamientos en las graficas similares pareciendo tener las mismas distribuciones y probamos hacerles test de normalidad pero dio como resultado que no son normales.
-- Se observo que al agregar clientes impacientes que se van de la cola al modelo se disminuyen los tiempos 'mean_delay_time' y 'effective_interarrival_mean' pero 'lost_cars' no hay variaciones significativas.
-- Intentamos hacer una regresion linear prediciendo 'lost_cars' dando como resultado que siempre nos da multicolinealidad aun cuando solo usamos una variable en el modelo.
+Simular el siguiente problema:
+
+Un pequeño autoservicio de lavado en el que el coche que entra no puede
+hacerlo hasta que el otro haya salido completamente, tiene una capacidad de
+aparcamiento de $10$ coches, incluyendo el que está siendo lavado. La empresa ha
+estimado que los coches llegan siguiendo una distribución de Poisson con una
+media de $20$ coches/hora, el tiempo de servicio sigue una distribución exponencial
+de $12$ minutos. La empresa abre durante $10$ horas al día. ¿Cuál es la media de
+coches perdidos cada día debido a las limitaciones de espacio?
