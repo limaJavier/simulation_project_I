@@ -10,3 +10,9 @@ estimado que los coches llegan siguiendo una distribución de Poisson con una
 media de $20$ coches/hora, el tiempo de servicio sigue una distribución exponencial
 de $12$ minutos. La empresa abre durante $10$ horas al día. ¿Cuál es la media de
 coches perdidos cada día debido a las limitaciones de espacio?
+
+# Integrantes
+
+- Alvaro Luis Gonzalez Brito C312
+- Javier Lima García C312
+- David Lezcano Becerra C312
